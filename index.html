@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pneus Mídia — Assistente Virtual</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --wpp-green:#25d366;
+  --wpp-green-dark:#128c7e;
+  --wpp-teal:#075e54;
+  --wpp-bg:#111b21;
+  --wpp-panel:#202c33;
+  --wpp-panel2:#2a3942;
+  --wpp-bubble-in:#202c33;
+  --wpp-bubble-out:#005c4b;
+  --wpp-border:rgba(255,255,255,0.08);
+  --wpp-text:#e9edef;
+  --wpp-text2:#8696a0;
+  --wpp-text3:#667781;
+  --wpp-tick:#53bdeb;
+  --font:'Inter',sans-serif;
+}
+
+html,body{height:100%;overflow:hidden}
+
+body{
+  font-family:var(--font);
+  background:var(--wpp-bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ── Layout ─────────────────────────── */
+.app{
+  width:100%;
+  max-width:440px;
+  height:100vh;
+  max-height:860px;
+  display:flex;
+  flex-direction:column;
+  background:var(--wpp-panel);
+  position:relative;
+  overflow:hidden;
+}
+
+@media(min-width:500px){
+  body{background:#0a1014}
+  .app{
+    height:90vh;
+    border-radius:12px;
+    box-shadow:0 24px 80px rgba(0,0,0,.7);
+  }
+}
+
+/* ── Header ─────────────────────────── */
+.header{
+  background:var(--wpp-panel2);
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid var(--wpp-border);
+  flex-shrink:0;
+  z-index:10;
+}
+
+.avatar-wrap{position:relative;flex-shrink:0}
+
+.avatar{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:linear-gradient(145deg,#1a5c4a,var(--wpp-green));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:600;color:#fff;
+  letter-spacing:.5px;
+}
+
+.online-dot{
+  position:absolute;bottom:1px;right:1px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--wpp-green);
+  border:2px solid var(--wpp-panel2);
+}
+
+.header-info{flex:1;min-width:0}
+.header-name{font-size:15px;font-weight:600;color:var(--wpp-text);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-sub{font-size:12px;color:var(--wpp-green);margin-top:1px}
+
+.header-actions{display:flex;gap:4px}
+.hbtn{
+  width:36px;height:36px;border-radius:50%;border:none;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--wpp-text2);transition:background .15s;
+}
+.hbtn:hover{background:rgba(255,255,255,.06)}
+.hbtn svg{width:20px;height:20px;fill:currentColor}
+
+/* ── Demo bar ─────────────────────────── */
+.demo-bar{
+  background:rgba(37,211,102,.07);
+  border-bottom:1px solid rgba(37,211,102,.12);
+  padding:5px 14px;
+  text-align:center;
+  font-size:11px;
+  color:rgba(37,211,102,.65);
+  letter-spacing:.4px;
+  flex-shrink:0;
+}
+
+/* ── Chat ─────────────────────────── */
+.chat{
+  flex:1;
+  overflow-y:auto;
+  padding:12px 12px 8px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  background:var(--wpp-bg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(255,255,255,0.018)'/%3E%3C/svg%3E");
+}
+
+.chat::-webkit-scrollbar{width:5px}
+.chat::-webkit-scrollbar-track{background:transparent}
+.chat::-webkit-scrollbar-thumb{background:var(--wpp-panel2);border-radius:4px}
+
+/* date chip */
+.date-chip{
+  display:flex;align-items:center;justify-content:center;
+  margin:8px 0 6px;
+}
+.date-chip span{
+  background:var(--wpp-panel2);
+  color:var(--wpp-text2);
+  font-size:11.5px;
+  padding:4px 12px;
+  border-radius:8px;
+  border:1px solid var(--wpp-border);
+}
+
+/* ── Bubbles ─────────────────────────── */
+.row{display:flex;margin-bottom:1px;position:relative}
+.row.in{justify-content:flex-start;padding-left:2px}
+.row.out{justify-content:flex-end;padding-right:2px}
+
+/* tail shapes via pseudo */
+.row.in .bubble::before{
+  content:'';
+  position:absolute;left:-7px;top:0;
+  border-width:0 8px 8px 0;
+  border-style:solid;
+  border-color:transparent var(--wpp-bubble-in) transparent transparent;
+}
+.row.out .bubble::before{
+  content:'';
+  position:absolute;right:-7px;top:0;
+  border-width:0 0 8px 8px;
+  border-style:solid;
+  border-color:transparent transparent transparent var(--wpp-bubble-out);
+}
+
+.bubble{
+  max-width:76%;
+  padding:7px 10px 5px;
+  border-radius:8px;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--wpp-text);
+  position:relative;
+  word-break:break-word;
+  animation:popIn .15s ease-out;
+}
+
+@keyframes popIn{
+  from{opacity:0;transform:scale(.94) translateY(3px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.row.in .bubble{background:var(--wpp-bubble-in);border-radius:0 8px 8px 8px}
+.row.out .bubble{background:var(--wpp-bubble-out);border-radius:8px 0 8px 8px}
+
+.bubble-meta{
+  display:flex;align-items:center;justify-content:flex-end;gap:4px;
+  margin-top:3px;
+}
+.bubble-time{font-size:11px;color:var(--wpp-text3)}
+.tick{
+  display:flex;align-items:center;
+  color:var(--wpp-text3);
+  transition:color .3s;
+}
+.tick.read{color:var(--wpp-tick)}
+.tick svg{width:16px;height:16px;fill:currentColor}
+
+/* ── Typing ─────────────────────────── */
+.row.typing{margin-bottom:4px}
+.typing-bubble{
+  background:var(--wpp-bubble-in);
+  border-radius:0 8px 8px 8px;
+  padding:10px 14px;
+  display:flex;align-items:center;gap:4px;
+  position:relative;
+  animation:popIn .15s ease-out;
+}
+.typing-bubble::before{
+  content:'';position:absolute;left:-7px;top:0;
+  border-width:0 8px 8px 0;border-style:solid;
+  border-color:transparent var(--wpp-bubble-in) transparent transparent;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--wpp-text3);
+  animation:blink 1.4s infinite ease-in-out;
+}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{
+  0%,80%,100%{transform:scale(.7);opacity:.4}
+  40%{transform:scale(1);opacity:1}
+}
+
+/* ── Cards especiais ─────────────────────────── */
+.confirm-card{
+  margin:6px 0;
+  background:rgba(37,211,102,.09);
+  border:1px solid rgba(37,211,102,.22);
+  border-radius:10px;
+  padding:12px 14px;
+  display:flex;align-items:flex-start;gap:10px;
+  animation:popIn .2s ease-out;
+}
+.confirm-icon{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(37,211,102,.15);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.confirm-icon svg{width:16px;height:16px;fill:var(--wpp-green)}
+.confirm-text strong{display:block;font-size:13px;font-weight:600;color:var(--wpp-green);margin-bottom:2px}
+.confirm-text span{font-size:12px;color:var(--wpp-text2)}
+
+/* ── Input ─────────────────────────── */
+.input-area{
+  padding:8px 12px;
+  background:var(--wpp-panel2);
+  display:flex;align-items:flex-end;gap:8px;
+  flex-shrink:0;
+  border-top:1px solid var(--wpp-border);
+}
+
+.input-box{
+  flex:1;
+  background:var(--wpp-panel);
+  border:1px solid var(--wpp-border);
+  border-radius:24px;
+  display:flex;align-items:flex-end;
+  padding:9px 14px;
+  gap:8px;
+  transition:border-color .2s;
+}
+.input-box:focus-within{border-color:rgba(37,211,102,.25)}
+
+textarea{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--wpp-text);font-family:var(--font);
+  font-size:14.5px;resize:none;
+  max-height:110px;line-height:1.5;padding:0;
+  scrollbar-width:none;
+}
+textarea::-webkit-scrollbar{display:none}
+textarea::placeholder{color:var(--wpp-text3)}
+
+.emoji-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--wpp-text2);padding:0;flex-shrink:0;
+  display:flex;align-items:center;
+  transition:color .15s;
+}
+.emoji-btn:hover{color:var(--wpp-text)}
+.emoji-btn svg{width:22px;height:22px;fill:currentColor}
+
+.send-btn{
+  width:44px;height:44px;border-radius:50%;
+  background:var(--wpp-green);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:background .15s,transform .1s;
+  box-shadow:0 2px 8px rgba(37,211,102,.3);
+}
+.send-btn:hover{background:var(--wpp-green-dark)}
+.send-btn:active{transform:scale(.92)}
+.send-btn:disabled{background:var(--wpp-panel);box-shadow:none;cursor:not-allowed}
+.send-btn svg{width:20px;height:20px;fill:#fff;margin-left:2px}
+
+/* ── Estilo bloco de texto ─────────────────────────── */
+.bubble p{margin:0}
+.bubble ul{margin:4px 0 0 4px;padding:0;list-style:none}
+.bubble ul li{padding:2px 0}
+.bubble ul li::before{content:'• ';color:var(--wpp-green)}
+.bubble strong{font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <div class="avatar-wrap">
+      <div class="avatar">PM</div>
+      <div class="online-dot"></div>
+    </div>
+    <div class="header-info">
+      <div class="header-name">Pedro · Pneus Mídia</div>
+      <div class="header-sub" id="header-status">online agora</div>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" title="Buscar">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      </button>
+      <button class="hbtn" title="Menu">
+        <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="demo-bar">✦ modo demonstração — dados reais, canal web</div>
+
+  <div class="chat" id="chat">
+    <div class="date-chip"><span id="today-chip">hoje</span></div>
+
+    <!-- Mensagem inicial do agente -->
+    <div class="row in" id="init-msg">
+      <div class="bubble">
+        Olá! Sou o Pedro da Pneus Mídia. Como posso lhe ajudar?
+        <div class="bubble-meta">
+          <span class="bubble-time" id="init-time"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-box">
+      <button class="emoji-btn" title="Emoji">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+      </button>
+      <textarea id="msg-input" placeholder="Mensagem" rows="1"></textarea>
+    </div>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONFIGURAÇÃO — altere apenas esta seção
+// ═══════════════════════════════════════════════
+const WEBHOOK_URL = 'https://webhook.castigliawebsolutions.com.br/webhook/pneus-midia-demo';
+const DELAY_BLOCOS = 4500;   // ms entre mensagens do agente
+const DELAY_TYPING = 800;    // ms de digitando antes do 1º bloco
+const ENDERECO = 'Av. Paulista, 1578 - Bela Vista, São Paulo - SP';
+// ═══════════════════════════════════════════════
+
+const chat = document.getElementById('chat');
+const input = document.getElementById('msg-input');
+const sendBtn = document.getElementById('send-btn');
+
+// SessionId único por aba/sessão
+let sessionId = sessionStorage.getItem('pm_sid');
+if (!sessionId) { sessionId = crypto.randomUUID(); sessionStorage.setItem('pm_sid', sessionId); }
+
+let busy = false;
+
+// Hora inicial
+document.getElementById('init-time').textContent = now();
+document.getElementById('today-chip').textContent = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+
+// Auto-resize textarea
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 110) + 'px';
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function now() {
+  return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function scrollBottom(smooth = true) {
+  chat.scrollTo({ top: chat.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatBubble(text) {
+  // Negrito *texto*
+  let t = escHtml(text).replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
+  // Quebras de linha
+  t = t.replace(/\n/g, '<br>');
+  return t;
+}
+
+// ── Adicionar bolha do usuário ──────────────────
+function addUserBubble(text) {
+  const row = document.createElement('div');
+  row.className = 'row out';
+  row.innerHTML = `
+    <div class="bubble">
+      ${formatBubble(text)}
+      <div class="bubble-meta">
+        <span class="bubble-time">${now()}</span>
+        <span class="tick" id="tick-${Date.now()}">
+          <svg viewBox="0 0 16 15"><path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.88a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.48a.418.418 0 0 0 .036.54l1.32 1.267a.32.32 0 0 0 .484-.034l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L2.75 8.515a.319.319 0 0 0-.484.032l-.378.48a.418.418 0 0 0 .036.54l2.327 2.231a.32.32 0 0 0 .484-.032l6.272-8.048a.366.366 0 0 0-.064-.512z"/></svg>
+        </span>
+      </div>
+    </div>`;
+  chat.appendChild(row);
+  scrollBottom();
+
+  // Simula leitura após 1.2s
+  const tickId = row.querySelector('[id^=tick-]').id;
+  setTimeout(() => {
+    const el = document.getElementById(tickId);
+    if (el) el.classList.add('read');
+  }, 1200);
+}
+
+// ── Typing indicator ──────────────────
+function showTyping() {
+  removeTyping();
+  const row = document.createElement('div');
+  row.className = 'row in typing';
+  row.id = 'typing-indicator';
+  row.innerHTML = `<div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  chat.appendChild(row);
+  scrollBottom();
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+// ── Adicionar bolha do agente ──────────────────
+function addAgentBubble(text) {
+  removeTyping();
+  const row = document.createElement('div');
+  row.className = 'row in';
+  row.innerHTML = `
+    <div class="bubble">
+      ${formatBubble(text)}
+      <div class="bubble-meta">
+        <span class="bubble-time">${now()}</span>
+      </div>
+    </div>`;
+  chat.appendChild(row);
+  scrollBottom();
+}
+
+// ── Card de confirmação ──────────────────
+function addConfirmCard() {
+  const card = document.createElement('div');
+  card.className = 'confirm-card';
+  card.innerHTML = `
+    <div class="confirm-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    </div>
+    <div class="confirm-text">
+      <strong>Agendamento confirmado!</strong>
+      <span>${escHtml(ENDERECO)}</span>
+    </div>`;
+  chat.appendChild(card);
+  scrollBottom();
+}
+
+// ── Status no header ──────────────────
+function setStatus(text, color = '') {
+  const el = document.getElementById('header-status');
+  el.textContent = text;
+  el.style.color = color || 'var(--wpp-green)';
+}
+
+// ── Delay ──────────────────
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ── Enviar mensagem ──────────────────
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text || busy) return;
+
+  busy = true;
+  sendBtn.disabled = true;
+  input.value = '';
+  input.style.height = 'auto';
+
+  addUserBubble(text);
+  setStatus('digitando...', 'var(--wpp-green)');
+
+  await delay(300);
+  showTyping();
+
+  let data;
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, chatInput: text })
+    });
+    if (!res.ok) throw new Error(res.status);
+    data = await res.json();
+  } catch {
+    removeTyping();
+    setStatus('online agora');
+    addAgentBubble('Tive um problema aqui. Pode tentar de novo?');
+    busy = false;
+    sendBtn.disabled = false;
+    return;
+  }
+
+  const blocos = data.blocos || [data.output || 'Não entendi, pode repetir?'];
+  const agendamento = !!data.agendamento;
+
+  // 1º bloco — delay de typing inicial
+  await delay(DELAY_TYPING);
+  addAgentBubble(blocos[0]);
+
+  // Blocos seguintes — typing + delay entre cada
+  for (let i = 1; i < blocos.length; i++) {
+    await delay(400);
+    showTyping();
+    await delay(DELAY_BLOCOS);
+    addAgentBubble(blocos[i]);
+  }
+
+  if (agendamento) {
+    await delay(600);
+    addConfirmCard();
+  }
+
+  setStatus('online agora');
+  busy = false;
+  sendBtn.disabled = false;
+  input.focus();
+}
+</script>
+</body>
+</html>
