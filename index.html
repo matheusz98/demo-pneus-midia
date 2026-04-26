@@ -518,7 +518,8 @@ async function sendMessage() {
       body: JSON.stringify({ sessionId, chatInput: text })
     });
     if (!res.ok) throw new Error(res.status);
-    data = await res.json();
+    const raw = await res.json();
+    data = Array.isArray(raw) ? raw[0] : raw;
   } catch {
     removeTyping();
     setStatus('online agora');
